@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import templateUrl from '../templates/card.json?url&no-inline';
 import { invalidCards, members, organizerId, repository, themes } from './cards.js';
+import WorkshopDocs from './WorkshopDocs.jsx';
 import './styles.css';
 
 function Icon({ name }) {
@@ -85,7 +86,12 @@ function Guide({ dialogRef }) {
   );
 }
 
+function workshopView() {
+  return window.location.hash === '#demo' ? 'demo' : 'docs';
+}
+
 function App() {
+  const [view, setView] = useState(workshopView);
   const [presenting, setPresenting] = useState(false);
   const guideRef = useRef(null);
   const presentButton = useRef(null);
@@ -98,6 +104,25 @@ function App() {
     if (document.fullscreenElement) await document.exitFullscreen().catch(() => {});
     setPresenting(false);
   }, []);
+
+  useEffect(() => {
+    const updateView = () => setView(workshopView());
+    window.addEventListener('hashchange', updateView);
+    return () => window.removeEventListener('hashchange', updateView);
+  }, []);
+
+  useEffect(() => {
+    if (view === 'docs') {
+      endPresentation();
+      const chapterId = window.location.hash.slice(1);
+      const chapter = chapterId.startsWith('tai-lieu-') && document.getElementById(chapterId);
+      if (chapter) {
+        chapter.scrollIntoView();
+        return;
+      }
+    }
+    window.scrollTo(0, 0);
+  }, [view, endPresentation]);
 
   useEffect(() => {
     if (presenting) {
@@ -132,17 +157,21 @@ function App() {
 
   return (
     <>
-      {!presenting && <header className="site-header">
+      {(view === 'docs' || !presenting) && <header className="site-header">
         <div className="container site-header-inner">
           <a className="brand" href="./">
             <span className="brand-icon"><Icon name="branch" /></span>
             Git Workshop
           </a>
+          <nav className="workshop-nav" aria-label="Nội dung workshop">
+            <a href="#tai-lieu" aria-current={view === 'docs' ? 'page' : undefined}>Tài liệu</a>
+            <a href="#demo" aria-current={view === 'demo' ? 'page' : undefined}>Demo</a>
+          </nav>
           <a className="header-link" href={repository} target="_blank" rel="noreferrer">GitHub <Icon name="external" /></a>
         </div>
       </header>}
 
-      <main className={`container main-layout${presenting ? ' main-layout--presenting' : ''}`}>
+      {view === 'docs' ? <WorkshopDocs /> : <main id="demo" className={`container main-layout${presenting ? ' main-layout--presenting' : ''}`}>
         {presenting ? <h1 className="visually-hidden">Góc thành viên</h1> : (
           <section className="hero" aria-labelledby="page-title">
             <div className="hero-copy">
@@ -178,7 +207,7 @@ function App() {
           ) : <p className="board-empty">Chưa có thẻ thành viên.</p>}
         </section>
         {!presenting && <Guide dialogRef={guideRef} />}
-      </main>
+      </main>}
     </>
   );
 }
