@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import templateUrl from '../templates/card.json?url&no-inline';
-import { cards, invalidCards, members, organizerId, repository, showExamples } from './cards.js';
+import { invalidCards, members, organizerId, repository, themes } from './cards.js';
 import './styles.css';
 
 function Icon({ name }) {
@@ -28,23 +28,25 @@ function BranchGraphic() {
 }
 
 function MemberCard({ card }) {
+  const [failedAvatar, setFailedAvatar] = useState(null);
+  const [failedCover, setFailedCover] = useState(null);
   const initials = card.initials || card.name.split(/\s+/).slice(-2).map((word) => Array.from(word)[0]).join('').toLocaleUpperCase('vi');
-  const organizer = card.id === organizerId;
-  const badge = organizer ? 'Người tổ chức' : card.example ? 'Minh họa' : '';
+  const showAvatar = card.avatar && card.avatar !== failedAvatar;
+  const showCover = card.cover && card.cover !== failedCover;
 
   return (
     <article className={`member-card theme--${card.theme}`}>
       <div className="member-cover">
-        {card.cover ? (
-          <img className="cover-image" src={card.cover} alt="" />
+        {showCover ? (
+          <img className="cover-image" src={card.cover} alt="" onError={() => setFailedCover(card.cover)} />
         ) : (
           <div className={`cover-pattern pattern--${card.pattern}`} aria-hidden="true"><span /><i /><b /></div>
         )}
-        {badge && <span className="member-badge">{badge}</span>}
+        {card.id === organizerId && <span className="member-badge">Người tổ chức</span>}
       </div>
       <div className="member-body">
         <div className="member-avatar" aria-hidden="true">
-          {card.avatar ? <img src={card.avatar} alt="" /> : initials}
+          {showAvatar ? <img src={card.avatar} alt="" onError={() => setFailedAvatar(card.avatar)} /> : initials}
         </div>
         <h3>{card.name}</h3>
         {card.role && <p className="member-role">{card.role}</p>}
@@ -52,9 +54,9 @@ function MemberCard({ card }) {
         {card.tags.length > 0 && <ul className="member-tags" aria-label="Sở thích và chủ đề">
           {card.tags.map((tag) => <li key={tag}>{tag}</li>)}
         </ul>}
-        {!card.example && <a className="member-link" href={`https://github.com/${card.id}`} target="_blank" rel="noreferrer">
+        <a className="member-link" href={`https://github.com/${card.id}`} target="_blank" rel="noreferrer">
           @{card.id} <Icon name="external" />
-        </a>}
+        </a>
       </div>
     </article>
   );
@@ -71,7 +73,8 @@ function Guide({ dialogRef }) {
       </div>
       <ol className="guide-steps">
         <li><strong>Tạo nhánh từ <code>main</code></strong><p>Trong repo đã clone, chạy <code>git switch -c card/ten-github</code>. Thay <code>ten-github</code> bằng username của bạn.</p></li>
-        <li><strong>Sao chép rồi chỉnh thẻ mẫu</strong><p>Đặt file vào <code>members/ten-github/card.json</code>. Điền phần giới thiệu và đổi <code>theme</code>, <code>pattern</code> theo ý bạn.</p></li>
+        <li><strong>Sao chép rồi chỉnh thẻ mẫu</strong><p>Đặt file vào <code>members/ten-github/card.json</code>. Điền phần giới thiệu và chọn họa tiết bằng <code>pattern</code>.</p><p>Chọn một giá trị <code>theme</code> ({themes.join(', ')}) hoặc để trống để ứng dụng tự gán màu.</p></li>
+        <li><strong>Thêm ảnh đại diện và ảnh bìa</strong><p>Đặt ảnh trong thư mục <code>img/</code> cạnh <code>card.json</code> rồi điền <code>"avatar": "img/anh-cua-minh.jpg"</code> và <code>"cover": "img/anh-bia.jpg"</code>.</p></li>
         <li><strong>Xem trước và gửi pull request</strong><p>Chạy <code>npm ci</code> lần đầu và <code>npm run dev</code> để xem thẻ. Sau đó commit, push nhánh và mở pull request vào <code>main</code>.</p></li>
       </ol>
       <div className="guide-actions">
@@ -127,9 +130,6 @@ function App() {
     fullscreenRequest.current = document.documentElement.requestFullscreen?.().catch(() => {});
   }
 
-  const exampleCount = cards.length - members.length;
-  const boardSummary = `${members.length} thành viên${showExamples ? ` · ${exampleCount} thẻ minh họa` : ''}`;
-
   return (
     <>
       {!presenting && <header className="site-header">
@@ -159,7 +159,7 @@ function App() {
           <div className="board-toolbar">
             <div>
               <h2 id="board-title">{presenting ? 'Góc thành viên' : 'Bảng giới thiệu'}</h2>
-              <p>{boardSummary}</p>
+              <p>{members.length} thành viên</p>
             </div>
             {presenting ? (
               <button ref={exitButton} className="button button--secondary" type="button" onClick={endPresentation}><Icon name="close" /> Thoát trình chiếu</button>
@@ -169,11 +169,13 @@ function App() {
           </div>
           {!presenting && invalidCards.length > 0 && <div className="board-warning" role="status">
             <strong>Có thẻ cần sửa</strong>
-            <ul>{invalidCards.map(({ path, reason }) => <li key={path}><code>{path}</code> · {reason}</li>)}</ul>
+            <ul>{invalidCards.map(({ path, reason }) => <li key={`${path}-${reason}`}><code>{path}</code> · {reason}</li>)}</ul>
           </div>}
-          <div className="board-grid">
-            {cards.map((card) => <MemberCard key={card.id} card={card} />)}
-          </div>
+          {members.length > 0 ? (
+            <div className={`board-grid${members.length === 1 ? ' board-grid--single' : ''}`}>
+              {members.map((card) => <MemberCard key={card.id} card={card} />)}
+            </div>
+          ) : <p className="board-empty">Chưa có thẻ thành viên.</p>}
         </section>
         {!presenting && <Guide dialogRef={guideRef} />}
       </main>
