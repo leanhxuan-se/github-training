@@ -11,7 +11,9 @@ npm ci
 npm run dev
 ```
 
-Mở [http://127.0.0.1:5173](http://127.0.0.1:5173). Nút **Tạo thẻ của bạn** mở hướng dẫn và tải file mẫu.
+Mở [http://127.0.0.1:5173](http://127.0.0.1:5173) để xem **Tài liệu** Git và GitHub. Chọn **Vào demo** để mở bảng thành viên. Trong **Demo**, nút **Tạo thẻ của bạn** mở hướng dẫn và tải file mẫu.
+
+Để dừng máy chủ, quay lại cửa sổ PowerShell, Command Prompt hoặc terminal VS Code đang chạy `npm run dev` và nhấn **Ctrl+C**. Nếu Command Prompt hỏi `Terminate batch job (Y/N)?`, nhập `Y` rồi nhấn Enter.
 
 Để đổi tài khoản người tổ chức hoặc liên kết GitHub, sao chép `.env.example` thành `.env` rồi chỉnh giá trị và khởi động lại ứng dụng. Ứng dụng dùng cấu hình mặc định nếu chưa có `.env`. Git bỏ qua `.env`. Các biến `VITE_*` xuất hiện trong mã gửi đến trình duyệt, vì vậy chỉ đặt cấu hình công khai ở đó. Ứng dụng hiện không cần mật khẩu hay token.
 
