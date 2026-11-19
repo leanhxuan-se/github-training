@@ -1,0 +1,9 @@
+{
+  "name": "Tên của bạn",
+  "role": "Vai trò hoặc nhóm của bạn",
+  "bio": "Viết một hoặc hai câu giới thiệu về bạn và điều bạn muốn học trong buổi workshop.",
+  "tags": ["Sở thích 1", "Sở thích 2", "Điều muốn học"],
+  "theme": "mint",
+  "pattern": "orbit",
+  "initials": "TB"
+}

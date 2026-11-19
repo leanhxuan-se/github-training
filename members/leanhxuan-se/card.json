@@ -1,0 +1,9 @@
+{
+  "name": "Người tổ chức",
+  "role": "Hướng dẫn workshop",
+  "bio": "Mình sẽ cùng các bạn tạo nhánh, gửi pull request và ghép góc giới thiệu của mọi người lên một bảng chung.",
+  "tags": ["Git", "GitHub", "Chia sẻ"],
+  "theme": "mint",
+  "pattern": "orbit",
+  "initials": "BTC"
+}
